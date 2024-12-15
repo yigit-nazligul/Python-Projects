@@ -14,15 +14,15 @@ amount_of_dose_A = 0
 amount_of_dose_B = 0
 total_vials = 0
 total_cost = 0
+total_amount_of_medication_a = 0
+total_amount_of_medication_b = 0
 
-#List to store patient details
-patient = []
+
 
 #Program Loop
 while True:
     while True:
         TR_i_n = input("TR Identification Number:") 
-        patient.append(TR_i_n)
         if len(TR_i_n) == 11 and TR_i_n.isdigit():
             break
         else:
@@ -30,10 +30,9 @@ while True:
                   
 
     name_surname = input("Name and Surname:")
-    patient.append(name_surname)
 
     dfpn = int(input("Deficient Factor Protein Number (8 or 9):"))
-    patient.append(dfpn)
+
     if dfpn == 8:
         hem_a += 1
         total_patient += 1
@@ -55,11 +54,10 @@ while True:
     elif level > 5 and level < 50:
         factor_level = "Mild"
         total_mild += 1
-    patient.append(factor_level)
 
 
-    antibody = int(input("Amount of Antibody in blood produced against factor medication (BU)"))
-    patient.append(antibody)
+
+    antibody = int(input("Amount of Antibody in blood produced against factor medication (BU):"))
 
     #Is He/She will be included the Prophylaxis Programme ? 
     # 1 - Number of Antibody have to be 0
@@ -67,20 +65,23 @@ while True:
     # 3 - Number of bleeding episodes must be >= 36 
 
     nobe = int(input("Number of bleeding attacks in the past  year:"))
-    patient.append(nobe)
 
     if antibody == 0 and factor_level == "Severe" and nobe >= 36:
         is_applied = "Yes"
+        weight_kg = int(input("Weight (kg):"))
+        ptofm = input("the Production type of factor medication to be used (Plasma-derived/Recombinant(P/p/R/r))")
         total_prophylaxis += 1
         if dfpn == 8:
+            total_iu_needed = weight_kg * (40-level) * 2
+            total_amount_of_medication_a += total_iu_needed
             prophylaxis_A += 1
         elif dfpn == 9:
             prophylaxis_B += 1
+            total_iu_needed = weight_kg * (40-level) 
+            total_amount_of_medication_b += total_iu_needed
 
-        weight_kg = int(input("Weight (kg):"))
-        ptofm = input("the Production type of factor medication to be used (Plasma-derived/Recombinant(P/p/R/r))")
-        patient.append(weight_kg)
-        patient.append(ptofm)
+        
+
     else:
         is_applied = "No"
 
@@ -92,73 +93,74 @@ while True:
         print("Prophylaxis will not be applied !")
 
     if is_applied == "Yes":
-        if dfpn == 8 :
-            weekly_usage = 3
-            min_required_dose_iu_A = (40 - level) * weight_kg / 2
-            amount_of_dose_A += min_required_dose_iu_A
-            total_amount_of_medication_A = (40 - level) * weight_kg * 3 * 4
-            vial_sizes = [2000,1500,1000,500] 
-            vial_counts = [0,0,0,0] #Stores how many of each bottle size are needed
-            i = 0 #Index to browse vial sizes
-            remaining_medication = total_amount_of_medication #Choosing appropriate vials to accommodate the total amount of medication
-            while remaining_medication > 0 and i < len(vial_sizes):
-                # Calculate required number based on bottle size
-                vial_counts[i] = remaining_medication // vial_sizes[i]
-                # Update remaining medication amount
-                remaining_medication %= vial_sizes[i]
-                i += 1
-                total_vials += vial_counts[i]
+            dose_2000 = 0
+            dose_1500 = 0
+            dose_1000 = 0
+            dose_500 = 0
+            dose_250 = 0
 
-            if ptofm == "R" or ptofm == "r":
-                cost = total_amount_of_medication * 0.4
-                total_recombinanted +=1
-                total_cost += cost
+            remaining_medication = total_iu_needed
 
-            elif ptofm == "P" or ptofm == "p":
-                cost = total_amount_of_medication * 0.3
-                total_plasma +=1
-                total_cost += cost
+            # 2000 IU
+            dose_2000 = remaining_medication // 2000
+            remaining_medication = remaining_medication % 2000
+            dose_2000+=1
+
+            # 1500 IU
+            dose_1500 = remaining_medication // 1500
+            remaining_medication = remaining_medication % 1500
+            dose_1500+=1
+
+            # 1000 IU
+            dose_1000 = remaining_medication // 1000
+            remaining_medication = remaining_medication % 1000
+            dose_1000+=1
+
+            # 500 IU
+            dose_500 = remaining_medication // 500
+            remaining_medication = remaining_medication % 500
+            dose_500+=1
+
+            # 250 IU
+            dose_250 = remaining_medication // 250
+            remaining_medication = remaining_medication % 250
+            dose_250+=1
+
+            if ptofm == "r" or ptofm == "R":
+                cost_1_time = float(total_iu_needed * 0.4)
+            else:
+                cost_1_time = float(total_iu_needed * 0.3)
+
+            if dfpn == 8:
+                weekly_cost = cost_1_time * 3
+            else:
+                weekly_cost = cost_1_time *2
+            
+            four_weekly_cost = weekly_cost * 4
+
+            
+            
+
+            # Print Results
+            print("Total required IU:", total_iu_needed, "IU")
+            print("Doz dağılımı:")
+            print("2000 IU: ", dose_2000)
+            print("1500 IU: ", dose_1500)
+            print("1000 IU: ", dose_1000)
+            print("500 IU:  ", dose_500)
+            print("250 IU:  ", dose_250)
+            print("Cost for 1 use:",cost_1_time,"$")
+            print("Cost for a week:", weekly_cost,"$")
+            print("Cost for 4 weeks:",four_weekly_cost,"$")
+
+                
 
 
-            print("Factor {} and {} medication will be used".format(dfpn,ptofm))
-            print("Need to use {} times a week the medication\nMinimum required dose of medication to be used at one time:{} IU".format(weekly_usage,total_amount_of_medication))
-            print("Bottle sizes and numbers required:")
-            for j in range(len(vial_sizes)):
-                print(f"{vial_sizes[j]} ml bottle: {vial_counts[j]} quantity")
-
-        elif dfpn == 9 :
-            weekly_usage = 2
-            min_required_dose_iu_B = (40 - level) * weight_kg
-            total_amount_of_medication_B = (40 - level) * weight_kg * 2 * 4
-            amount_of_dose_B += min_required_dose_iu_B
-            vial_sizes = [2000,1500,1000,500] #
-            vial_counts = [0,0,0,0] #Stores how many of each bottle size are needed
-            i = 0 #Index to browse vial sizes
-            remaining_medication = total_amount_of_medication #Choosing appropriate vials to accommodate the total amount of medication
-            while remaining_medication > 0 and i < len(vial_sizes):
-                # Calculate required number based on bottle size
-                vial_counts[i] = remaining_medication // vial_sizes[i]
-                # Update remaining medication amount
-                remaining_medication %= vial_sizes[i]
-                i += 1
-
-            if ptofm == "R" or ptofm == "r":
-                total_cost = total_amount_of_medication * 0.4
-            elif ptofm == "P" or ptofm == "p":
-                total_cost = total_amount_of_medication * 0.3
-
-
-            print("Factor {} and {} medication will be used".format(dfpn,ptofm))
-            print("Need to use {} times a week the medication\nMinimum required dose of medication to be used at one time:{} IU".format(weekly_usage,total_amount_of_medication))
-            print("Bottle sizes and numbers required:")
-            for j in range(len(vial_sizes)):
-                print(f"{vial_sizes[j]} ml bottle: {vial_counts[j]} quantity")
-
-        another = input("Is there any other patients ? (E/e/H/h)")
-        if another == "E" or another == "e":
-            continue
-        else:
-            break
+            another = input("Is there any other patients ? (E/e/H/h)")
+            if another == "E" or another == "e":
+                continue
+            else:
+                break
 
 #Displaying Summary
 print("\nSummary:")
@@ -175,7 +177,7 @@ print("Number of patients with Mild Hemophilia:", total_mild)
 percentage_mild = (total_mild / total_patient) * 100
 print("Percent of patients with mild Hemophilia:", percentage_mild)
 percentage_prophy_A = (prophylaxis_A / total_prophylaxis) * 100
-print("Number of patients recieved prophylaxis with Factor 8:{}, Percentage:{}".format(prophylaxis_A,percentage_prophy_B))
+print("Number of patients recieved prophylaxis with Factor 8:{}, Percentage:{}".format(prophylaxis_A,percentage_prophy_A))
 percentage_prophy_B = (prophylaxis_B / total_prophylaxis) * 100
 print("Number of patients recieved prophylaxis with Factor 9:{}, Percentage:{}".format(prophylaxis_B,percentage_prophy_B))
 print("Total number of patients with Prophylaxis applied:", total_prophylaxis)
